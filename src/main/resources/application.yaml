@@ -17,3 +17,7 @@ spring:
       hibernate:
         format_sql: true
 
+jwt:
+  secret: "LibreriaWebSecretKey"
+  expirationMs: 86400000
+

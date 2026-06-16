@@ -1,42 +1,20 @@
-package com.biblioteca.api.model;
+package com.biblioteca.api.dto;
 
-import jakarta.persistence.*;
-import com.fasterxml.jackson.annotation.JsonProperty;
-
-@Entity
-@Table(name = "users")
-public class User {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-
+/**
+ * DTO para peticiones de creación/actualización de usuario.
+ * Acepta tanto `rol` (string) como `roleId` (numérico) para facilitar
+ * la normalización entre frontend y backend.
+ */
+public class UserRequest {
     private String nombre;
-
     private String email;
-
-    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     private String password;
-
     private String rol;
-
-    @Column(name = "role_id")
-    private Long roleId;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "role_id", insertable = false, updatable = false)
-    private Role role;
-
+    private Integer roleId;
     private String permisos;
-
     private String estado;
 
-    public User() {
-    }
-
-    public Long getId() {
-        return id;
-    }
+    public UserRequest() {}
 
     public String getNombre() {
         return nombre;
@@ -70,6 +48,14 @@ public class User {
         this.rol = rol;
     }
 
+    public Integer getRoleId() {
+        return roleId;
+    }
+
+    public void setRoleId(Integer roleId) {
+        this.roleId = roleId;
+    }
+
     public String getPermisos() {
         return permisos;
     }
@@ -84,21 +70,5 @@ public class User {
 
     public void setEstado(String estado) {
         this.estado = estado;
-    }
-
-    public Long getRoleId() {
-        return roleId;
-    }
-
-    public void setRoleId(Long roleId) {
-        this.roleId = roleId;
-    }
-
-    public Role getRole() {
-        return role;
-    }
-
-    public void setRole(Role role) {
-        this.role = role;
     }
 }
