@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Map;
 import java.util.Optional;
+import java.util.HashMap;
 
 @RestController
 @RequestMapping("/auth")
@@ -56,15 +57,14 @@ public class AuthController {
         String token = jwtUtil.generateToken(u);
         long roleId = u.getRoleId() != null ? u.getRoleId() : 0L;
 
-        Map<String, Object> userSafe = Map.of(
-                "id", u.getId(),
-                "nombre", u.getNombre(),
-                "email", u.getEmail(),
-                "rol", u.getRol(),
-                "roleId", roleId,
-                "permisos", u.getPermisos(),
-                "estado", u.getEstado()
-        );
+        HashMap<String, Object> userSafe = new HashMap<>();
+        userSafe.put("id", u.getId());
+        userSafe.put("nombre", u.getNombre());
+        userSafe.put("email", u.getEmail());
+        userSafe.put("rol", u.getRol());
+        userSafe.put("roleId", roleId);
+        userSafe.put("permisos", u.getPermisos());
+        userSafe.put("estado", u.getEstado());
 
         return ResponseEntity.ok(Map.of("token", token, "user", userSafe));
     }
