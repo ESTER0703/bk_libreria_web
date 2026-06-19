@@ -13,7 +13,7 @@ import java.util.List;
  * por ejemplo listas de roles y permisos presentes en la base de datos.
  */
 @RestController
-@RequestMapping("/meta")
+@RequestMapping("/api/meta")
 @CrossOrigin(origins = "*")
 public class MetaController {
 

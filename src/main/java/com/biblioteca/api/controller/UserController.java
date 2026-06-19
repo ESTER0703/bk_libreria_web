@@ -16,7 +16,7 @@ import java.util.stream.Collectors;
  * Las respuestas públicas omiten la contraseña e incluyen roleId y roleName.
  */
 @RestController
-@RequestMapping("/users")
+@RequestMapping("/api/users")
 @CrossOrigin(origins = "*")
 public class UserController {
 
