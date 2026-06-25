@@ -7,7 +7,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.io.IOException;
 import java.net.URLEncoder;
@@ -30,16 +29,15 @@ public class BookController {
     }
 
     @GetMapping
-    public List<Book> getBooks() {
-        return bookRepository.findAll();
+    public List<Book> getBooks(HttpServletRequest httpRequest) {
+        return bookRepository.findAll().stream().peek(book -> normalizeBookImageUrl(book, httpRequest)).toList();
     }
 
     @GetMapping("/search")
-    public List<Book> searchBooks(@RequestParam(required = false) String q) {
-        if (q == null || q.isBlank()) {
-            return bookRepository.findAll();
-        }
-        return bookRepository.searchByQuery(q);
+    public List<Book> searchBooks(@RequestParam(required = false) String q, HttpServletRequest httpRequest) {
+        List<Book> books = (q == null || q.isBlank()) ? bookRepository.findAll() : bookRepository.searchByQuery(q);
+        books.forEach(book -> normalizeBookImageUrl(book, httpRequest));
+        return books;
     }
 
     @PostMapping
@@ -106,7 +104,31 @@ public class BookController {
         return UUID.randomUUID() + "_" + sanitizedBaseName + extension;
     }
 
-    private String buildImageUrl(HttpServletRequest httpRequest, String fileName) {
+    private void normalizeBookImageUrl(Book book, HttpServletRequest httpRequest) {
+        if (book == null || book.getImageUrl() == null || book.getImageUrl().isBlank()) {
+            return;
+        }
+
+        String imageUrl = book.getImageUrl();
+        if (imageUrl.startsWith("http://") || imageUrl.startsWith("https://")) {
+            return;
+        }
+
+        String pathValue = imageUrl.startsWith("/") ? imageUrl.substring(1) : imageUrl;
+        String[] segments = pathValue.split("/");
+        StringBuilder normalizedPath = new StringBuilder();
+        for (String segment : segments) {
+            if (segment.isBlank()) continue;
+            if (normalizedPath.length() > 0) {
+                normalizedPath.append('/');
+            }
+            normalizedPath.append(URLEncoder.encode(segment, StandardCharsets.UTF_8));
+        }
+
+        book.setImageUrl(buildBaseUrl(httpRequest) + "/" + normalizedPath);
+    }
+
+    private String buildBaseUrl(HttpServletRequest httpRequest) {
         String scheme = httpRequest.getHeader("X-Forwarded-Proto");
         if (scheme == null || scheme.isBlank()) {
             scheme = httpRequest.getScheme();
@@ -124,8 +146,11 @@ public class BookController {
             }
         }
 
-        String encodedFileName = URLEncoder.encode(fileName, StandardCharsets.UTF_8);
-        return scheme + "://" + host + "/uploads/books/" + encodedFileName;
+        return scheme + "://" + host;
+    }
+
+    private String buildImageUrl(HttpServletRequest httpRequest, String fileName) {
+        return buildBaseUrl(httpRequest) + "/uploads/books/" + URLEncoder.encode(fileName, StandardCharsets.UTF_8);
     }
 
     @DeleteMapping("/{id}")
