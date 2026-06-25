@@ -10,6 +10,8 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.io.IOException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -105,11 +107,25 @@ public class BookController {
     }
 
     private String buildImageUrl(HttpServletRequest httpRequest, String fileName) {
-        return ServletUriComponentsBuilder.fromCurrentContextPath()
-                .pathSegment("uploads", "books", fileName)
-                .build()
-                .encode()
-                .toUriString();
+        String scheme = httpRequest.getHeader("X-Forwarded-Proto");
+        if (scheme == null || scheme.isBlank()) {
+            scheme = httpRequest.getScheme();
+        }
+
+        String host = httpRequest.getHeader("X-Forwarded-Host");
+        if (host == null || host.isBlank()) {
+            host = httpRequest.getHeader("Host");
+        }
+        if (host == null || host.isBlank()) {
+            host = httpRequest.getServerName();
+            int port = httpRequest.getServerPort();
+            if (port != 80 && port != 443) {
+                host = host + ":" + port;
+            }
+        }
+
+        String encodedFileName = URLEncoder.encode(fileName, StandardCharsets.UTF_8);
+        return scheme + "://" + host + "/uploads/books/" + encodedFileName;
     }
 
     @DeleteMapping("/{id}")
