@@ -29,7 +29,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         String header = request.getHeader("Authorization");
         String token = (header != null && header.startsWith("Bearer ")) ? header.substring(7) : null;
 
-        boolean protectedPath = path.startsWith("/users") || path.startsWith("/loans") || path.startsWith("/books") || path.startsWith("/reports");
+        boolean protectedPath = path.startsWith("/api/users") || path.startsWith("/api/loans") || path.startsWith("/api/books") || path.startsWith("/api/reports") || path.startsWith("/api/reservations");
 
         if (token != null && jwtUtil.validateToken(token)) {
             Long userId = jwtUtil.getUserIdFromToken(token);
