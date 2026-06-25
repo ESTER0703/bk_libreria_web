@@ -26,16 +26,19 @@ public class JwtAuthFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain) throws ServletException, IOException {
         String path = request.getRequestURI();
+        String method = request.getMethod();
         String header = request.getHeader("Authorization");
         String token = (header != null && header.startsWith("Bearer ")) ? header.substring(7) : null;
 
-        boolean protectedPath = path.startsWith("/api/users") || path.startsWith("/api/loans") || path.startsWith("/api/books") || path.startsWith("/api/reports") || path.startsWith("/api/reservations");
+        boolean publicReadPath = (path.equals("/api/books") || path.startsWith("/api/books/")) && "GET".equalsIgnoreCase(method);
+        boolean publicAuthPath = path.equals("/api/auth/login") || path.equals("/api/auth/register");
+        boolean protectedPath = path.startsWith("/api/users") || path.startsWith("/api/loans") || path.startsWith("/api/reports") || path.startsWith("/api/reservations");
 
         if (token != null && jwtUtil.validateToken(token)) {
             Long userId = jwtUtil.getUserIdFromToken(token);
             Optional<User> u = userRepository.findById(userId);
             u.ifPresent(user -> request.setAttribute("authUser", user));
-        } else if (protectedPath) {
+        } else if (!publicReadPath && !publicAuthPath && protectedPath) {
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             response.setContentType("application/json");
             response.getWriter().write("{\"message\":\"Unauthorized\"}");
