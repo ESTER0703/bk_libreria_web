@@ -17,6 +17,10 @@ spring:
       hibernate:
         format_sql: true
 
+  web:
+    resources:
+      static-locations: classpath:/static/,file:uploads/
+
 jwt:
   secret: "LibreriaWebSecretKey"
   expirationMs: 86400000
